@@ -64,3 +64,16 @@ coverage/
 *.test.xml
 test-results/
 
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+build/
+dist/
+
+# VSCode settings
+.vscode/
+.history/
+.code-workspace
