@@ -1,79 +1,63 @@
+# Create .gitignore
+cat > .gitignore << 'EOF'
+# Virtual environments
+llm_env/
+venv/
+env/
+.venv/
 
-*.com
-*.class
-*.dll
-*.exe
-*.o
-*.so
-*.pyc
-*.pyo
-*.pyd
-*.out
-*.obj
-
-*.7z
-*.dmg
-*.gz
-*.iso
-*.jar
-*.rar
-*.tar
-*.zip
-*.egg
-*.whl
-
-
-*.log
-*.sql
-*.sqlite
-*.db
-
-.DS_Store
-Thumbs.db
-ehthumbs.db
-Icon?
-Desktop.ini
-$RECYCLE.BIN/
-.vscode/
-.idea/
-*.sublime-workspace
-*.sublime-project
-__pycache__/
-*.py[cod]
-*.pyo
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.env
-.env.*
-
-# Misc #
-########
-*.swp
-*.bak
-*.tmp
-*.orig
-*.rej
-*.swo
-*.~*
-
-coverage/
-*.cover
-*.lcov
-*.test.xml
-test-results/
-
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-*.pdb
 *.egg-info/
 build/
 dist/
 
-# VSCode settings
+# Node
+node_modules/
+
+# Environment variables
+.env
+.env.*
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
 .vscode/
-.history/
-.code-workspace
+.idea/
+
+# Binary/model/library files
+*.so
+*.dll
+*.exe
+*.o
+*.obj
+*.out
+*.a
+
+# Archives
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
+
+# Database
+*.db
+*.sqlite
+
+# ML model files
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+*.onnx
+EOF
