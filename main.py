@@ -9,7 +9,15 @@ from embeddings.embedder import embed
 from embeddings.vector_db import VectorDB
 from models.llama_loader import load_model
 from models.steering import generate_with_steering
+from rag.retriever import RAGRetriever
+from rag.retriever import RAGRetriever
 
+from config import (
+    TOP_K,
+    MAX_NEW_TOKENS,
+    STEERING_ALPHA,
+    RAG_TOP_K,
+)
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -36,13 +44,19 @@ def aggregate_steering_vectors(
     return torch.tensor(mean_vec, dtype=torch.float32)
 
 
-def build_prompt(query: str) -> str:
+def build_prompt(query: str,contexts: list[str],) -> str:
     """
     Wrap the user query in a simple instruction-style prompt.
     Adjust this template if your LLaMA variant uses a different chat format.
     """
+    context_block = "\n\n".join(contexts)
+
     return (
         "<|begin_of_text|>"
+        "<|start_header_id|>system<|end_header_id|>\n"
+        "Use retrieved information when relevant.\n\n"
+        f"{context_block}\n"
+        "<|eot_id|>"
         "<|start_header_id|>user<|end_header_id|>\n"
         f"{query}"
         "<|eot_id|>"
@@ -75,6 +89,7 @@ def main():
 
     # ── Step 4: load LLaMA ────────────────────────────────────────────────────
     model, tokenizer = load_model()
+    rag = RAGRetriever()
 
     # ── Step 5: chat loop ─────────────────────────────────────────────────────
     print("\n=== Chat ready. Type 'quit' or 'exit' to stop. ===\n")
@@ -105,7 +120,8 @@ def main():
             steering_vec = aggregate_steering_vectors(steering_vecs, indices)
 
         # Build prompt and generate
-        prompt = build_prompt(query)
+        contexts = rag.retrieve(query, k=RAG_TOP_K)
+        prompt = build_prompt(query, contexts)
 
         try:
             response = generate_with_steering(

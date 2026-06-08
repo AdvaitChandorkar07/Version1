@@ -35,4 +35,11 @@ SEMANTIC_VECS_PATH  = os.path.join(DATA_DIR, "semantic_vectors.npy")
 STEERING_VECS_PATH  = os.path.join(DATA_DIR, "steering_vectors.npy")
 FAISS_INDEX_PATH    = os.path.join(DATA_DIR, "faiss.index")
 
+RAG_DIR = "data/rag"
+
+RAG_CHUNKS_PATH = f"{RAG_DIR}/chunks.json"
+RAG_EMBEDDINGS_PATH = f"{RAG_DIR}/embeddings.npy"
+RAG_FAISS_PATH = f"{RAG_DIR}/faiss.index"
+
+RAG_TOP_K = 3
 os.makedirs(DATA_DIR, exist_ok=True)

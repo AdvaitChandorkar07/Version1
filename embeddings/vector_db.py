@@ -19,16 +19,20 @@ class VectorDB:
 
     # ── persistence ───────────────────────────────────────────────────────────
 
-    def save(self):
-        faiss.write_index(self.index, self.index_path)
-        print(f"[vector_db] Index saved to {self.index_path}  ({self.index.ntotal} vectors)")
+    def save(self, path: str = None):
+        path = path or self.index_path
+        faiss.write_index(self.index, path)
+        #print(f"[vector_db] Index saved to {path} ({self.index.ntotal} vectors)")
 
-    def load(self) -> bool:
-        """Load index from disk. Returns True if successful, False if not found."""
-        if os.path.exists(self.index_path):
-            self.index = faiss.read_index(self.index_path)
-            print(f"[vector_db] Index loaded from {self.index_path}  ({self.index.ntotal} vectors)")
+    def load(self, path: str = None) -> bool:
+
+        path = path or self.index_path
+
+        if os.path.exists(path):
+            self.index = faiss.read_index(path)
+            print(f"[vector_db] Index loaded from {path} ({self.index.ntotal} vectors)")
             return True
+
         return False
 
     # ── write ─────────────────────────────────────────────────────────────────
