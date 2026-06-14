@@ -5,3 +5,7 @@ faiss-cpu>=1.8.0
 umap-learn>=0.5.6
 scikit-learn>=1.4.0
 numpy>=1.26.0
+bitsandbytes 
+accelerate
+sounddevice>=0.4.6
+whisper
