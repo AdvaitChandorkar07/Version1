@@ -9,3 +9,4 @@ bitsandbytes
 accelerate
 sounddevice>=0.4.6
 whisper
+sqlite3

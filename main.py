@@ -2,22 +2,34 @@ import sys
 import numpy as np
 import torch
 
-from config import TOP_K, MAX_NEW_TOKENS, STEERING_ALPHA
-from preference.collect import collect_preferences
-from preference.process import build_preference_vectors
-from embeddings.embedder import embed
-from embeddings.vector_db import VectorDB
-from models.llama_loader import load_model
-from models.steering import generate_with_steering
-from rag.retriever import RAGRetriever
-from rag.retriever import RAGRetriever
-
 from config import (
     TOP_K,
     MAX_NEW_TOKENS,
     STEERING_ALPHA,
     RAG_TOP_K,
 )
+
+from database.db import initialize_database
+from database.user_repository import UserRepository
+
+from models.user import User
+from models.llama_loader import load_model
+from models.steering import generate_with_steering
+
+from preference.collect import collect_preferences
+from preference.process import build_preference_vectors
+
+from embeddings.embedder import embed
+from embeddings.vector_db import VectorDB
+
+from embeddings.storage import (
+    save_semantic,
+    save_steering,
+    load_semantic,
+    load_steering,
+)
+
+from rag.retriever import RAGRetriever
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -71,20 +83,67 @@ def main():
     print("  Pre-Appointment App  —  Local LLaMA + Representation Editing")
     print("=" * 60)
 
-    # ── Step 1: preferences ───────────────────────────────────────────────────
-    # Pass force=True to re-run onboarding: collect_preferences(force=True)
-    answers = collect_preferences()
+    # ── Step 1: Login / Signup ───────────────────────────────────────────────
+    user_id = input("User ID: ").strip()
+    user = UserRepository.get_user(user_id)
 
-    # ── Step 2: vectors ───────────────────────────────────────────────────────
-    # Pass force=True to recompute: build_preference_vectors(answers, force=True)
-    semantic_vecs, steering_vecs = build_preference_vectors(answers)
+    if user is None:
+
+        print("\nNew user detected.\n")
+
+        name = input("Name: ").strip()
+
+        user = User(
+            user_id=user_id,
+            name=name
+        )
+
+        UserRepository.create_user(user)
+
+        answers = collect_preferences()
+
+        semantic_vecs, steering_vecs = build_preference_vectors(
+            answers
+        )
+
+        semantic_path = save_semantic(
+            user.user_id,
+            semantic_vecs
+        )
+
+        steering_path = save_steering(
+            user.user_id,
+            steering_vecs
+        )
+
+        UserRepository.update_vectors(
+            user.user_id,
+            semantic_path,
+            steering_path
+        )
+
+    # EXISTING USER
+    else:
+
+        print(f"\nWelcome back {user.name}\n")
+
+        semantic_vecs = load_semantic(user.semantic_path)
+
+        steering_vecs = load_steering(user.steering_path)
+
+        if len(semantic_vecs.shape) == 1:
+            semantic_vecs = semantic_vecs.reshape(1, -1)
+
+        if len(steering_vecs.shape) == 1:
+            steering_vecs = steering_vecs.reshape(1, -1)
 
     # ── Step 3: FAISS index ───────────────────────────────────────────────────
     db = VectorDB()
-    if not db.load():                        # try loading saved index
-        print("[main] Building FAISS index from scratch...")
-        db.add(semantic_vecs)
-        db.save()
+
+    print("[main] Building user-specific FAISS index...")
+
+    db.add(semantic_vecs)
+
     print(f"[main] FAISS index ready — {db.size} vectors.\n")
 
     # ── Step 4: load LLaMA ────────────────────────────────────────────────────
